@@ -12,12 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('seminars', function (Blueprint $table) {
-            $table->id();
-            $table->string('nim')->index();
-            $table->foreignId('title_id')->constrained('titles')->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->uuid('student_id');
+            $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
+            $table->uuid('title_id');
+            $table->foreign('title_id')->references('id')->on('titles')->onDelete('cascade');
             $table->string('seminar_file');
-            $table->string('supervisor_nidn');
-            $table->string('examiner_nidn');
+            $table->uuid('supervisor_id');
+            $table->foreign('supervisor_id')->references('id')->on('lecturers')->onDelete('cascade');
+            $table->uuid('examiner_id');
+            $table->foreign('examiner_id')->references('id')->on('lecturers')->onDelete('cascade');
+            $table->timestamp('seminar_date')->nullable();
+            $table->timestamp('submission_date')->nullable();
+            $table->enum('status', ['pending', 'approved', 'rejected', 'scheduled', 'completed', 'canceled'])->default('pending');
             $table->decimal('score', 5, 2)->nullable();
             $table->timestamps();
         });

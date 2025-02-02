@@ -12,14 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('personal_informations', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('study_program_id')->constrained('study_programs')->onDelete('cascade');
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
             $table->date('date_of_birth')->nullable();
-            $table->string('nim')->nullable();
-            $table->string('nidn')->nullable();
             $table->timestamps();
         });
     }

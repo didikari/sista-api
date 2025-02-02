@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payments', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->enum('payment_type', ['stage1', 'stage2']);
             $table->string('payment_file');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->uuid('student_id');
+            $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->foreignId('verified_by')->nullable()->constrained('users');
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamp('verified_at')->nullable();

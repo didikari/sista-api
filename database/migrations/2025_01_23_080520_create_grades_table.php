@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('grades', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('activity_id');
-            $table->enum('activity_type', ['seminar', 'pre_seminar', 'exam']);
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->uuid('gradable_id');
+            $table->string('gradable_type');
+            $table->uuid('lecturer_id');
+            $table->foreign('lecturer_id')->references('id')->on('lecturers')->onDelete('cascade');
             $table->enum('role_in_activity', ['supervisor', 'examiner']);
             $table->decimal('a1', 5, 2)->nullable();
             $table->decimal('a2', 5, 2)->nullable();

@@ -16,9 +16,12 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
-            RoleSeeder::class,        // Seeder untuk Role dan Permission
-            PermissionSeeder::class, // Seeder untuk Permissions
-            UserSeeder::class,        // Seeder untuk User dan Assign Role
+            StudyProgramSeeder::class,
+            RoleSeeder::class,
+            PermissionSeeder::class,
+            UserSeeder::class,
+            TitleSeeder::class,
+            GradeWeightSeeder::class
         ]);
     }
 }

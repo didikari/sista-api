@@ -12,12 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('titles', function (Blueprint $table) {
-            $table->id();
-            $table->string('nim');
+            $table->uuid('id')->primary();
+            $table->uuid('student_id');
+            $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->string('title');
             $table->text('abstract');
             $table->string('proposal_file');
-            $table->string('nidn');
+            $table->uuid('supervisor_id');
+            $table->foreign('supervisor_id')->references('id')->on('lecturers')->onDelete('cascade');
             $table->enum('status', ['draft', 'submitted', 'approved', 'rejected'])->default('draft');
             $table->timestamps();
         });
