@@ -9,6 +9,8 @@ use LaravelEasyRepository\ServiceApi;
 use App\Repositories\Seminar\SeminarRepository;
 use App\Repositories\Student\StudentRepository;
 use App\Repositories\Title\TitleRepository;
+use App\Services\Seminar\Validators\KaprodiSeminarValidator;
+use App\Services\Seminar\Validators\StudentSeminarValidator;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -51,7 +53,7 @@ class SeminarServiceImplement extends ServiceApi implements SeminarService
         $this->studentRepository = $studentRepository;
     }
 
-    public function getExamsByRole(string $role, $user)
+    public function getSeminarByRole(string $role, $user)
     {
 
         switch ($role) {
@@ -96,23 +98,44 @@ class SeminarServiceImplement extends ServiceApi implements SeminarService
         }
     }
 
-    public function updateSeminarByKaprodi(array $data, $id, $lecturerId)
+    public function updateSeminarByRole(string $role, $id, $user, array $data)
     {
-        try {
-            $seminar = $this->mainRepository->findOrFail($id);
-            $this->authorizeKaprodiAccess($lecturerId, $seminar->student_id);
-            return $this->mainRepository->updateByKaprodi($id, $data);
-        } catch (ModelNotFoundException | AuthorizationException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new Exception('Error update seminar: ' . $e->getMessage());
+        $validator = match ($role) {
+            'mahasiswa' => new SeminarValidatorContext(new StudentSeminarValidator()),
+            'kaprodi' => new SeminarValidatorContext(new KaprodiSeminarValidator()),
+        };
+
+        $validatedData = $validator->validate($data);
+
+        switch ($role) {
+            case 'kaprodi':
+                $seminar = $this->mainRepository->findOrFail($id);
+                $this->authorizeKaprodiAccess($user->lecturer->id, $seminar->student_id);
+                return $this->mainRepository->updateById($id, $validatedData);
+
+            case 'mahasiswa':
+                if (isset($validatedData['seminar_file'])) {
+                    $validatedData['seminar_file'] = $this->storeFile($validatedData['seminar_file']);
+                    $validatedData['status'] = "pending";
+                }
+                return $this->mainRepository->updateById($id, $validatedData);
+
+            default:
+                return null;
         }
+    }
+
+
+    public function findById(string $id)
+    {
+        $seminar = $this->mainRepository->findById($id);
+        return $seminar;
     }
 
     private function authorizeKaprodiAccess($lecturerId, $studentId)
     {
-        $kaprodiStudy = $this->lecturerRepository->getStudyProgramByUserId($lecturerId);
-        $studentStudy = $this->studentRepository->getStudyProgramByUserId($studentId);
+        $kaprodiStudy = $this->lecturerRepository->getStudyProgramByLecturerId($lecturerId);
+        $studentStudy = $this->studentRepository->getStudyProgramByStudentId($studentId);
 
         if ($kaprodiStudy->id !== $studentStudy->id) {
             throw new AuthorizationException('You do not have access to update this status as you are not the assigned kaprodi.');

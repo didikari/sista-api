@@ -13,4 +13,6 @@ interface ExamRepository extends Repository
     public function createExam(array $data);
     public function findByStudentId($studentId);
     public function updateByKaprodi($id, array $data);
+    public function updateById($id, array $data);
+    public function findById(string $id);
 }

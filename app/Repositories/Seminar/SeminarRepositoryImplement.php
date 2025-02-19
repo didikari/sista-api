@@ -60,8 +60,20 @@ class SeminarRepositoryImplement extends Eloquent implements SeminarRepository
 
     public function updateByKaprodi($id, array $data)
     {
-        $preSeminar = $this->model->findOrFail($id);
-        $preSeminar->update($data);
-        return $preSeminar;
+        $seminar = $this->model->findOrFail($id);
+        $seminar->update($data);
+        return $seminar;
+    }
+
+    public function updateById($id, array $data)
+    {
+        $seminar = $this->model->findOrFail($id);
+        $seminar->update($data);
+        return $seminar;
+    }
+
+    public function findById(string $id)
+    {
+        return $this->model->findOrFail($id);
     }
 }

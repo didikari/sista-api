@@ -58,10 +58,15 @@ class PreSeminarRepositoryImplement extends Eloquent implements PreSeminarReposi
         return $this->model->where('student_id', $studentId)->first();
     }
 
-    public function updateByKaprodi($id, array $data)
+    public function updateById($id, array $data)
     {
         $preSeminar = $this->model->findOrFail($id);
         $preSeminar->update($data);
         return $preSeminar;
+    }
+
+    public function findById(string $id)
+    {
+        return $this->model->findOrFail($id);
     }
 }

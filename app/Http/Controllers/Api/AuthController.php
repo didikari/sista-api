@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\User\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -33,9 +34,13 @@ class AuthController extends Controller
      */
     public function me()
     {
-        $user = auth()->user();
-
-        return ResponseHelper::success($user);
+        $user = auth()->user()->makeHidden(['roles', 'permissions']);
+        $data = [
+            "user" => $user,
+            "roles" => $user->getRoleNames(),
+            "permissions" => $user->getAllPermissions()->pluck('name')
+        ];
+        return ResponseHelper::success($data);
     }
 
     /**
@@ -57,8 +62,16 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken(auth()->refresh());
+        try {
+            $ttl = intval(env('JWT_REFRESH_TTL', 60));
+            auth()->factory()->setTTL($ttl);
+            $token = auth()->refresh();
+            return $this->respondWithToken($token);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Could not refresh token'], 400);
+        }
     }
+
 
     /**
      * Get the token array structure.

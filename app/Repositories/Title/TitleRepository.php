@@ -14,4 +14,5 @@ interface TitleRepository extends Repository
     public function updateTitle($titleId, array $data);
     public function updateBySupervisor($id, array $data);
     public function findByStudentId($studentId);
+    public function findById(string $id);
 }

@@ -41,6 +41,18 @@ class GuidanceRepositoryImplement extends Eloquent implements GuidanceRepository
 
     public function findByStudentId($studentId)
     {
-        return $this->model->where('student_id', $studentId)->first();
+        return $this->model->where('student_id', $studentId)
+            ->first();
+    }
+
+    public function findByDosenId(string $dosenId)
+    {
+        return $this->model->where('supervisor_id', $dosenId)
+            ->first();
+    }
+
+    public function findById(string $id)
+    {
+        return $this->model->with('supervisor.user')->findOrFail($id);
     }
 }

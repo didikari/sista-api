@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\HasUuids;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Payment extends Model
@@ -16,6 +17,17 @@ class Payment extends Model
         'status',
         'verified_at',
     ];
+
+
+    public function getCreatedAtAttribute($value)
+    {
+        return Carbon::parse($value)->setTimezone('Asia/Jakarta')->format('d-m-Y : H:i');
+    }
+
+    public function getUpdatedAtAttribute($value)
+    {
+        return Carbon::parse($value)->setTimezone('Asia/Jakarta')->format('d-m-Y : H:i');
+    }
 
     public function student()
     {

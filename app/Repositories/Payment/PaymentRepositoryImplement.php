@@ -37,6 +37,11 @@ class PaymentRepositoryImplement extends Eloquent implements PaymentRepository
         return $this->model->where(['student_id' => $studentId, 'payment_type' => $type])->first();
     }
 
+    public function getByStudent(string $studentId)
+    {
+        return $this->model->where('student_id', $studentId)->get();
+    }
+
     public function allPaymentType($studentId)
     {
         return $this->model->where('student_id', $studentId)

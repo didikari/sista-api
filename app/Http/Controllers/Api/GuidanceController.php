@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Guidance\GuidanceRequest;
 use App\Http\Requests\Guidance\UpdateGuidanceRequest;
 use App\Http\Requests\GuidanceHistory\GuidanceHistoryRequest;
+use App\Http\Resources\Guidance\GuidanceResource;
 use App\Services\Guidance\GuidanceService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -20,6 +21,18 @@ class GuidanceController extends Controller
     public function __construct(GuidanceService $guidanceService)
     {
         $this->guidanceService = $guidanceService;
+    }
+
+    public function index()
+    {
+        try {
+            $studentId = Auth::user()->student->id;
+            $guidance = $this->guidanceService->getGuidance($studentId);
+            $guidance->load(['student', 'student.title', 'supervisor']);
+            return ResponseHelper::success(new GuidanceResource($guidance), 'Get guidance successfully', 200);
+        } catch (\Exception $e) {
+            return ResponseHelper::exception($e);
+        }
     }
 
     public function store(GuidanceRequest $request)
@@ -36,6 +49,17 @@ class GuidanceController extends Controller
         }
     }
 
+
+    public function show($id)
+    {
+        try {
+            $guidance = $this->guidanceService->findById($id);
+            return ResponseHelper::success(new GuidanceResource($guidance), 'Get guidance succesfully', 200);
+        } catch (\Exception $e) {
+            return ResponseHelper::exception($e);
+        }
+    }
+
     public function update($id, UpdateGuidanceRequest $request)
     {
         $data = $request->validated();
@@ -48,7 +72,7 @@ class GuidanceController extends Controller
     {
         try {
             $data = $request->validated();
-            $supervisorId = Auth::user()->id;
+            $supervisorId = Auth::user()->lecturer->id;
             $guidance =  $this->guidanceService->updateBySupervisor($id, $data, $supervisorId);
             return ResponseHelper::success($guidance, 'Updated guidance successfully', 200);
         } catch (ModelNotFoundException $e) {

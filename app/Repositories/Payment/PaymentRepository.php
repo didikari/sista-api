@@ -10,4 +10,5 @@ interface PaymentRepository extends Repository
     public function updatePayment(array $data, $id);
     public function findPayment($studentId, $type);
     public function allPaymentType($studentId);
+    public function getByStudent(string $studentId);
 }

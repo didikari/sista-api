@@ -50,6 +50,19 @@ class PaymentServiceImplement extends ServiceApi implements PaymentService
         }
     }
 
+    public function getPaymentRole(string $roles, object $user)
+    {
+        try {
+            return match ($roles) {
+                'admin', 'staff' => $this->mainRepository->all(),
+                'mahasiswa' => $this->mainRepository->getByStudent($user->student->id),
+                default => null,
+            };
+        } catch (\Exception $e) {
+            throw new Exception('Get payment failed', $e->getMessage());
+        }
+    }
+
     public function updatePayment($studentId, array $data, $id)
     {
         try {
@@ -60,12 +73,23 @@ class PaymentServiceImplement extends ServiceApi implements PaymentService
 
             if (isset($data['payment_file'])) {
                 $this->deleteOldFile($payment->payment_file);
+                $data['status'] = "pending";
                 $data['payment_file'] = $this->storeFile($data['payment_file']);
             }
 
             return $this->mainRepository->updatePayment($data, $id);
         } catch (\Exception $e) {
             throw new Exception('Update payment failed : ', $e->getMessage());
+        }
+    }
+
+
+    public function findById(string $id)
+    {
+        try {
+            return $this->mainRepository->findOrFail($id);
+        } catch (\Exception $e) {
+            throw new Exception('Get payment failed : ', $e->getMessage());
         }
     }
 

@@ -76,7 +76,7 @@ class TitleServiceImplement extends ServiceApi implements TitleService
             $existingTitle = $this->mainRepository->findByStudentId($studentId);
 
             if ($existingTitle) {
-                throw new ConflictException('A guidance record already exists.');
+                throw new ConflictException('A title record already exists.');
             }
 
             if (isset($data['proposal_file'])) {
@@ -139,5 +139,11 @@ class TitleServiceImplement extends ServiceApi implements TitleService
         } catch (\Exception $e) {
             throw new Exception('Error updating title: ' . $e->getMessage());
         }
+    }
+
+    public function findById(string $id)
+    {
+        $title = $this->mainRepository->findById($id);
+        return $title;
     }
 }

@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Title\TitleRequest;
 use App\Http\Requests\Title\UpdateTitleRequest;
 use App\Http\Requests\Title\UpdateTitleStatusRequest;
+use App\Http\Resources\Title\TitleResource;
+use App\Models\Title;
 use App\Services\Title\TitleService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -88,6 +90,17 @@ class TitleController extends Controller
         try {
             $title = $this->titleService->updateStatusBySupervisor($id, $request->validated());
             return ResponseHelper::success($title, 'Update status successfullly');
+        } catch (\Exception $e) {
+            return ResponseHelper::exception($e);
+        }
+    }
+
+
+    public function show($id)
+    {
+        try {
+            $title = $this->titleService->findById($id);
+            return ResponseHelper::success(new TitleResource($title), 'Get title succesfully', 200);
         } catch (\Exception $e) {
             return ResponseHelper::exception($e);
         }

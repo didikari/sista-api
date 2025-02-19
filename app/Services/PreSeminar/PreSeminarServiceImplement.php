@@ -9,6 +9,8 @@ use LaravelEasyRepository\ServiceApi;
 use App\Repositories\PreSeminar\PreSeminarRepository;
 use App\Repositories\Student\StudentRepository;
 use App\Repositories\Title\TitleRepository;
+use App\Services\PreSeminar\Validators\KaprodiPreSeminarValidator;
+use App\Services\PreSeminar\Validators\StudentPreSeminarValidator;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
@@ -51,7 +53,7 @@ class PreSeminarServiceImplement extends ServiceApi implements PreSeminarService
         $this->studentRepository = $studentRepository;
     }
 
-    public function getExamsByRole(string $role, $user)
+    public function getPreSeminarByRole(string $role, $user)
     {
 
         switch ($role) {
@@ -67,6 +69,34 @@ class PreSeminarServiceImplement extends ServiceApi implements PreSeminarService
                 return null;
         }
     }
+
+    public function updatePreSeminarByRole(string $role, $id, $user, array $data)
+    {
+        $validator = match ($role) {
+            'mahasiswa' => new PreSeminarValidatorContext(new StudentPreSeminarValidator()),
+            'kaprodi' => new PreSeminarValidatorContext(new KaprodiPreSeminarValidator()),
+        };
+
+        $validatedData = $validator->validate($data);
+
+        switch ($role) {
+            case 'kaprodi':
+                $preSeminar = $this->mainRepository->findOrFail($id);
+                $this->authorizeKaprodiAccess($user->lecturer->id, $preSeminar->student_id);
+                return $this->mainRepository->updateById($id, $validatedData);
+
+            case 'mahasiswa':
+                if (isset($validatedData['pre_seminar_file'])) {
+                    $validatedData['pre_seminar_file'] = $this->storeFile($validatedData['pre_seminar_file']);
+                    $validatedData['status'] = "pending";
+                }
+                return $this->mainRepository->updateById($id, $validatedData);
+
+            default:
+                return null;
+        }
+    }
+
 
     public function createPreSeminar(array $data, $studentId)
     {
@@ -96,23 +126,17 @@ class PreSeminarServiceImplement extends ServiceApi implements PreSeminarService
         }
     }
 
-    public function updatePreSeminarByKaprodi(array $data, $id, $lecturerId)
+
+    public function findById(string $id)
     {
-        try {
-            $preSeminar = $this->mainRepository->findOrFail($id);
-            $this->authorizeKaprodiAccess($lecturerId, $preSeminar->student_id);
-            return $this->mainRepository->updateByKaprodi($id, $data);
-        } catch (ModelNotFoundException | AuthorizationException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new Exception('Error update pre-seminar: ' . $e->getMessage());
-        }
+        $preSeminar = $this->mainRepository->findById($id);
+        return $preSeminar;
     }
 
     private function authorizeKaprodiAccess($lecturerId, $studentId)
     {
-        $kaprodiStudy = $this->lecturerRepository->getStudyProgramByUserId($lecturerId);
-        $studentStudy = $this->studentRepository->getStudyProgramByUserId($studentId);
+        $kaprodiStudy = $this->lecturerRepository->getStudyProgramByLecturerId($lecturerId);
+        $studentStudy = $this->studentRepository->getStudyProgramByStudentId($studentId);
 
         if ($kaprodiStudy->id !== $studentStudy->id) {
             throw new AuthorizationException('You do not have access to update this status as you are not the assigned kaprodi.');

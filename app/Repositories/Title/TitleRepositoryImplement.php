@@ -71,4 +71,9 @@ class TitleRepositoryImplement extends Eloquent implements TitleRepository
     {
         return $this->model->where('student_id', $studentId)->first();
     }
+
+    public function findById(string $id)
+    {
+        return $this->model->with('supervisor.user')->findOrFail($id);
+    }
 }

@@ -19,7 +19,21 @@ class PaymentController extends Controller
         $this->paymentService = $paymentService;
     }
 
-    public function index() {}
+    public function index()
+    {
+        try {
+            $user = Auth::user();
+            $roles = $user->getRoleNames()->first();
+            $payment = $this->paymentService->getPaymentRole($roles, $user);
+            if ($payment) {
+                $relations = $roles === 'mahasiswa' ? ['verifiedBy'] : ['student', 'verifiedBy'];
+                $payment->load($relations);
+            }
+            return ResponseHelper::success($payment, 'Get payment succesfully', 200);
+        } catch (\Exception $e) {
+            return ResponseHelper::exception($e);
+        }
+    }
 
     public function store(PaymentRequest $request)
     {
@@ -28,6 +42,17 @@ class PaymentController extends Controller
             $studentId = Auth::user()->student->id;
             $payment = $this->paymentService->createPayment($data, $studentId);
             return ResponseHelper::success($payment, 'Create payment successfully', 201);
+        } catch (\Exception $e) {
+            return ResponseHelper::exception($e);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            $payment = $this->paymentService->findById($id);
+            $payment->load('verifiedBy');
+            return ResponseHelper::success($payment, 'Get payment successfully', 200);
         } catch (\Exception $e) {
             return ResponseHelper::exception($e);
         }

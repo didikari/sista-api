@@ -43,6 +43,17 @@ class GuidanceServiceImplement extends ServiceApi implements GuidanceService
         $this->guidanceHistory = $guidanceHistory;
     }
 
+
+    public function getGuidance(string $studentId)
+    {
+        try {
+            $guidance = $this->mainRepository->findByStudentId($studentId);
+            return $guidance;
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+    }
+
     public function createGuidance(array $data)
     {
         try {
@@ -79,6 +90,7 @@ class GuidanceServiceImplement extends ServiceApi implements GuidanceService
                     Storage::disk('public')->delete($guidance->proposal_file);
                 }
                 $filePath = $data['proposal_file']->store('uploads/guidance', 'public');
+                $data['status'] = "pending";
                 $data['proposal_file'] = $filePath;
             }
 
@@ -123,6 +135,12 @@ class GuidanceServiceImplement extends ServiceApi implements GuidanceService
         } catch (\Exception $e) {
             throw new Exception('Error updating guidance : ' . $e->getMessage());
         }
+    }
+
+    public function findById(string $id)
+    {
+        $title = $this->mainRepository->findById($id);
+        return $title;
     }
 
     private function determineStatus($status)

@@ -7,6 +7,7 @@ use LaravelEasyRepository\BaseService;
 interface SeminarService extends BaseService
 {
     public function createSeminar(array $data, $studentId);
-    public function getExamsByRole(string $role, $user);
-    public function updateSeminarByKaprodi(array $data, $id, $lecturerId);
+    public function getSeminarByRole(string $role, $user);
+    public function findById(string $id);
+    public function updateSeminarByRole(string $role, $id, $user, array $data);
 }

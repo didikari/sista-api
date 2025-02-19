@@ -12,5 +12,6 @@ interface PreSeminarRepository extends Repository
     public function getByDosen(string $dosenId);
     public function getByKaprodi($user);
     public function findByStudentId($studentId);
-    public function updateByKaprodi($id, array $data);
+    public function updateById($id, array $data);
+    public function findById(string $id);
 }

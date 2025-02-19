@@ -52,6 +52,10 @@ class ResponseHelper
      */
     public static function exception(Throwable $th): JsonResponse
     {
+
+        if ($th instanceof \Illuminate\Validation\ValidationException) {
+            return self::error('Validation failed', Response::HTTP_UNPROCESSABLE_ENTITY, $th->errors());
+        }
         // Set the status code to 500 if it's invalid
         $code = $th->getCode() ?: Response::HTTP_INTERNAL_SERVER_ERROR;
         $code = $code < 100 || $code > 599 ? Response::HTTP_INTERNAL_SERVER_ERROR : $code;

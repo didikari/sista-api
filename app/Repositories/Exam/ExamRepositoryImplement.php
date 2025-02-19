@@ -67,4 +67,16 @@ class ExamRepositoryImplement extends Eloquent implements ExamRepository
         $preSeminar->update($data);
         return $preSeminar;
     }
+
+    public function updateById($id, array $data)
+    {
+        $seminar = $this->model->findOrFail($id);
+        $seminar->update($data);
+        return $seminar;
+    }
+
+    public function findById(string $id)
+    {
+        return $this->model->findOrFail($id);
+    }
 }

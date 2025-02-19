@@ -7,6 +7,7 @@ enum EventStatus: string
     case Pending = 'pending';
     case Aapproved = 'approved';
     case Rejected = 'rejected';
+    case Cancelled = 'cancelled';
     case Scheduled = 'scheduled';
     case Completed = 'completed';
 

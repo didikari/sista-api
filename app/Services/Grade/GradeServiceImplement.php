@@ -44,13 +44,13 @@ class GradeServiceImplement extends ServiceApi implements GradeService
 
             $weights = $this->gradeWeightRepository->getWeightByRole($role);
             $this->applyWeights($data, $weights);
+            $data['lecturer_id'] = $lecturerId;
 
             return $this->mainRepository->createForGradable($data);
         } catch (AuthorizationException | ConflictException $e) {
             throw $e;
         } catch (Exception $e) {
-            Log::error("Create Grade Error: " . $e->getMessage());
-            throw new Exception('Store grade failed');
+            throw new Exception('Store grade failed', $e->getMessage());
         }
     }
 
@@ -81,7 +81,7 @@ class GradeServiceImplement extends ServiceApi implements GradeService
     }
 
 
-    private function validateUserRole(string $gradableType, string $gradableId, int $lecturerId, string $role): void
+    private function validateUserRole(string $gradableType, string $gradableId, string $lecturerId, string $role): void
     {
         $repository = match ($gradableType) {
             'App\Models\PreSeminar' => $this->preSeminarRepository,
@@ -99,7 +99,7 @@ class GradeServiceImplement extends ServiceApi implements GradeService
         }
     }
 
-    private function ensureNoExistingGrade(string $gradableId, int $lecturerId, string $role): void
+    private function ensureNoExistingGrade(string $gradableId, string $lecturerId, string $role): void
     {
         $existingGrade = $this->mainRepository->findByGradableAndUser($gradableId, $lecturerId, $role);
         if ($existingGrade) {

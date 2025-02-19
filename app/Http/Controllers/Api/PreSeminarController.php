@@ -7,6 +7,7 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PreSeminar\PreSeminarRequest;
 use App\Http\Requests\PreSeminar\UpdatePreSeminarRequest;
+use App\Http\Resources\PreSeminar\PreSeminarResource;
 use App\Services\PreSeminar\PreSeminarService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -30,14 +31,18 @@ class PreSeminarController extends Controller
             $user = Auth::user();
             $role = $user->getRoleNames()->first();
 
-            $preSeminar = $this->preSeminarService->getExamsByRole($role, $user);
-            $preSeminar->load(['title', 'student', 'supervisor', 'examiner']);
-
+            $preSeminar = $this->preSeminarService->getPreSeminarByRole($role, $user);
             if ($preSeminar === null) {
                 return ResponseHelper::error('Unauthorized role', 403);
             }
+            $relations = ['title', 'supervisor', 'examiner'];
+            if ($role !== 'mahasiswa') {
+                $relations[] = 'student';
+            }
 
-            return ResponseHelper::success($preSeminar, 'Get data exam successfully', 200);
+            $preSeminar->load($relations);
+
+            return ResponseHelper::success(PreSeminarResource::collection($preSeminar), 'Get data exam successfully', 200);
         } catch (\Exception $e) {
             return ResponseHelper::exception($e);
         }
@@ -59,21 +64,36 @@ class PreSeminarController extends Controller
     }
 
 
-    public function updateByKaprodi(UpdatePreSeminarRequest $request, $id)
+    public function show($id)
     {
         try {
-            $data = $request->validated();
-            $lecturerId = Auth::user()->lecturer->id;
-            $preSeminar = $this->preSeminarService->updatePreSeminarByKaprodi($data, $id, $lecturerId);
-            return ResponseHelper::success($preSeminar, 'Update PreSeminar successfuly', 200);
-        } catch (AuthorizationException $e) {
-            return ResponseHelper::error($e->getMessage(), 403);
-        } catch (ModelNotFoundException $e) {
-            return ResponseHelper::error($e->getMessage(), 404);
+            $role = Auth::user()->getRoleNames()->first();
+            $preSeminar = $this->preSeminarService->findById($id);
+            $relations = ['title', 'supervisor', 'examiner'];
+            if ($role !== 'mahasiswa') {
+                $relations[] = 'student';
+            }
+            $preSeminar->load($relations);
+            return ResponseHelper::success(new PreSeminarResource($preSeminar), 'Get PreSeminar succesfully', 200);
         } catch (\Exception $e) {
             return ResponseHelper::exception($e);
         }
     }
+
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $user = Auth::user();
+            $role = $user->getRoleNames()->first();
+            $data = $request->all();
+            $preSeminar = $this->preSeminarService->updatePreSeminarByRole($role, $id, $user, $data);
+            return ResponseHelper::success($preSeminar, 'Updated PreSeminar successfuly', 200);
+        } catch (\Exception $e) {
+            return ResponseHelper::exception($e);
+        }
+    }
+
 
     public function destroy(string $id)
     {

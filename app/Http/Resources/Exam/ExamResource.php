@@ -4,6 +4,7 @@ namespace App\Http\Resources\Exam;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ExamResource extends JsonResource
 {
@@ -16,27 +17,31 @@ class ExamResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'student' => [
-                'id' => $this->student_id,
-                'name' => $this->student->user->name,
-            ],
+            'exam_file' => url(Storage::url($this->exam_file)),
+            'seminar_date' => $this->seminar_date,
+            'submission_date' => $this->submission_date,
+            'status' => $this->status,
+            'score' => $this->score,
             'title' => [
-                'id' => $this->title_id,
-                'name' => $this->title->title,
+                'id' => $this->title->id,
+                'title' => $this->title->title,
             ],
             'supervisor' => [
-                'id' => $this->supervisor_id,
-                'name' => $this->supervisor->name ?? $this->supervisor->user->name,
+                'id' => $this->supervisor->id,
+                'name' => $this->supervisor->user->name,
+                'nidn' => $this->supervisor->nidn,
             ],
             'examiner' => [
-                'id' => $this->examiner_id,
-                'name' => $this->examiner->name ?? $this->examiner->user->name,
+                'id' => $this->examiner->id,
+                'name' => $this->examiner->user->name,
+                'nidn' => $this->examiner->nidn,
             ],
-            'exam_file' => $this->exam_file,
-            'score' => $this->score,
-            'submission_date' => $this->submission_date,
-            'seminar_date' => $this->seminar_date,
-            'status' => $this->status,
+            'student' => $this->whenLoaded('student', function () {
+                return [
+                    'id' => $this->student->id,
+                    'nim' => $this->student->nim,
+                ];
+            }),
         ];
     }
 }

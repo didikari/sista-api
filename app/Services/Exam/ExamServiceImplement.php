@@ -9,6 +9,8 @@ use App\Repositories\Exam\ExamRepository;
 use App\Repositories\Lecturer\LecturerRepository;
 use App\Repositories\Student\StudentRepository;
 use App\Repositories\Title\TitleRepository;
+use App\Services\Exam\Validators\KaprodiExamValidator;
+use App\Services\Exam\Validators\StudentExamValidator;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -97,17 +99,38 @@ class ExamServiceImplement extends ServiceApi implements ExamService
         }
     }
 
-    public function updateExamByKaprodi(array $data, $id, $lecturerId)
+
+    public function updateExamByRole(string $role, $id, $user, array $data)
     {
-        try {
-            $exam = $this->mainRepository->findOrFail($id);
-            $this->authorizeKaprodiAccess($lecturerId, $exam->student_id);
-            return $this->mainRepository->updateByKaprodi($id, $data);
-        } catch (ModelNotFoundException | AuthorizationException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new Exception('Error update exam: ' . $e->getMessage());
+        $validator = match ($role) {
+            'mahasiswa' => new ExamValidatorContext(new StudentExamValidator()),
+            'kaprodi' => new ExamValidatorContext(new KaprodiExamValidator()),
+        };
+
+        $validatedData = $validator->validate($data);
+
+        switch ($role) {
+            case 'kaprodi':
+                $exam = $this->mainRepository->findOrFail($id);
+                $this->authorizeKaprodiAccess($user->lecturer->id, $exam->student_id);
+                return $this->mainRepository->updateById($id, $validatedData);
+
+            case 'mahasiswa':
+                if (isset($validatedData['exam_file'])) {
+                    $validatedData['exam_file'] = $this->storeFile($validatedData['exam_file']);
+                    $validatedData['status'] = "pending";
+                }
+                return $this->mainRepository->updateById($id, $validatedData);
+
+            default:
+                return null;
         }
+    }
+
+    public function findById(string $id)
+    {
+        $seminar = $this->mainRepository->findById($id);
+        return $seminar;
     }
 
     private function authorizeKaprodiAccess($lecturerId, $studentId)

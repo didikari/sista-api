@@ -30,6 +30,11 @@ class PreSeminar extends Model
         return $this->belongsTo(Title::class);
     }
 
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
     public function supervisor()
     {
         return $this->belongsTo(Lecturer::class, 'supervisor_id');

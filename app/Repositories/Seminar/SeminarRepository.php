@@ -13,4 +13,6 @@ interface SeminarRepository extends Repository
     public function getByKaprodi($user);
     public function findByStudentId($studentId);
     public function updateByKaprodi($id, array $data);
+    public function updateById($id, array $data);
+    public function findById(string $id);
 }

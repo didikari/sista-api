@@ -25,6 +25,7 @@ class UpdatePreSeminarRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'supervisor_id' => 'required|exists:lecturers,id',
             'examiner_id' => 'required|exists:lecturers,id',
             'seminar_date' => 'required|date',
             'status' => 'sometimes|in:' . implode(',', array_map(function ($status) {

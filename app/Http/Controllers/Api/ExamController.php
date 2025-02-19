@@ -60,18 +60,31 @@ class ExamController extends Controller
         }
     }
 
-
-    public function updateByKaprodi(UpdateExamRequest $request, $id)
+    public function show($id)
     {
         try {
-            $data = $request->validated();
-            $lecturerId = Auth::user()->lecturer->id;
-            $exam = $this->examService->updateExamByKaprodi($data, $id, $lecturerId);
-            return ResponseHelper::success($exam, 'Update Exam successfuly', 200);
-        } catch (AuthorizationException $e) {
-            return ResponseHelper::error($e->getMessage(), 403);
-        } catch (ModelNotFoundException $e) {
-            return ResponseHelper::error($e->getMessage(), 404);
+            $role = Auth::user()->getRoleNames()->first();
+            $exam = $this->examService->findById($id);
+            $relations = ['title', 'supervisor', 'examiner'];
+            if ($role !== 'mahasiswa') {
+                $relations[] = 'student';
+            }
+            $exam->load($relations);
+            return ResponseHelper::success(new ExamResource($exam), 'Get Exam succesfully', 200);
+        } catch (\Exception $e) {
+            return ResponseHelper::exception($e);
+        }
+    }
+
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $user = Auth::user();
+            $role = $user->getRoleNames()->first();
+            $data = $request->all();
+            $exam = $this->examService->updateExamByRole($role, $id, $user, $data);
+            return ResponseHelper::success($exam, 'Updated Exam successfuly', 200);
         } catch (\Exception $e) {
             return ResponseHelper::exception($e);
         }

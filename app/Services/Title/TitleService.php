@@ -14,4 +14,5 @@ interface TitleService extends BaseService
     public function delete($id);
     public function updateTitle($id, array $data, $studentId);
     public function updateStatusBySupervisor($id, array $data);
+    public function findById(string $id);
 }

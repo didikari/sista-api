@@ -24,4 +24,14 @@ class Student extends Model
     {
         return $this->belongsTo(StudyProgram::class);
     }
+
+    public function guidances()
+    {
+        return $this->hasMany(Guidance::class, 'student_id');
+    }
+
+    public function title()
+    {
+        return $this->hasOne(Title::class);
+    }
 }

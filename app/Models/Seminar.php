@@ -25,11 +25,16 @@ class Seminar extends Model
         'status' => EventStatus::class,
     ];
 
+
     public function title()
     {
         return $this->belongsTo(Title::class);
     }
 
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'student_id');
+    }
     public function supervisor()
     {
         return $this->belongsTo(Lecturer::class, 'supervisor_id');

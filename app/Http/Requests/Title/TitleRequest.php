@@ -29,25 +29,9 @@ class TitleRequest extends FormRequest
             'abstract' => 'required|string',
             'proposal_file' => 'nullable|file|mimes:pdf,docx,doc|max:10240',
             'supervisor_id' => 'required|exists:lecturers,id',
-            'status' => 'required|in:' . implode(',', array_map(function ($status) {
+            'status' => 'sometimes|in:' . implode(',', array_map(function ($status) {
                 return $status->value;
             }, TitleStatus::cases())),
-        ];
-    }
-
-    /**
-     * Custom messages for validation rules.
-     */
-    public function messages()
-    {
-        return [
-            'title.required' => 'The title field is required.',
-            'abstract.required' => 'The abstract field is required.',
-            'proposal_file.mimes' => 'The proposal file must be a PDF, DOCX, or DOC file.',
-            'supervisor_id.required' => 'The supervisor field is required.',
-            'supervisor_id.exists' => 'The selected supervisor is invalid.',
-            'status.required' => 'The status field is required.',
-            'status.in' => 'The selected status is invalid.',
         ];
     }
 
