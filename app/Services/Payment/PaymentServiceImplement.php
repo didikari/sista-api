@@ -7,6 +7,7 @@ use LaravelEasyRepository\ServiceApi;
 use App\Repositories\Payment\PaymentRepository;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -50,17 +51,38 @@ class PaymentServiceImplement extends ServiceApi implements PaymentService
         }
     }
 
-    public function getPaymentRole(string $roles, object $user)
+    public function getPaymentRole(string $roles, object $user, Request $request)
     {
+        $perPage = $request->get('per_page', 10);
+        $page = $request->get('page', 1);
+        $searchTerm = $request->get('search', '');
         try {
             return match ($roles) {
-                'admin', 'staff' => $this->mainRepository->all(),
+                'admin', 'staff' => $this->mainRepository->getAll(),
                 'mahasiswa' => $this->mainRepository->getByStudent($user->student->id),
                 default => null,
             };
         } catch (\Exception $e) {
             throw new Exception('Get payment failed', $e->getMessage());
         }
+    }
+
+
+    public function getPayments($user, Request $request)
+    {
+        $role = $user->getRoleNames()->first();
+        $query = $this->mainRepository->getPaymentRole($role, $user);
+
+        $query = $this->mainRepository->searchPayments($query, $request->get('search', ''));
+
+        $relations = $role === 'mahasiswa' ? ['verifiedBy'] : ['student', 'verifiedBy'];
+
+        return $this->mainRepository->getPaginatedPayments(
+            $query,
+            $relations,
+            (int) $request->get('perPage', 10),
+            (int) $request->get('page', 1)
+        );
     }
 
     public function updatePayment($studentId, array $data, $id)

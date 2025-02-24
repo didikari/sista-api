@@ -37,11 +37,6 @@ class PaymentRepositoryImplement extends Eloquent implements PaymentRepository
         return $this->model->where(['student_id' => $studentId, 'payment_type' => $type])->first();
     }
 
-    public function getByStudent(string $studentId)
-    {
-        return $this->model->where('student_id', $studentId)->get();
-    }
-
     public function allPaymentType($studentId)
     {
         return $this->model->where('student_id', $studentId)
@@ -49,5 +44,26 @@ class PaymentRepositoryImplement extends Eloquent implements PaymentRepository
             ->where('status', 'approved')
             ->pluck('payment_type')
             ->toArray();
+    }
+
+
+    public function getPaymentRole(string $role, $user)
+    {
+        return $role === 'mahasiswa'
+            ? $this->model->where('student_id', $user->student->id)
+            : $this->model->query();
+    }
+
+    public function searchPayments($query, string $searchTerm = null)
+    {
+        if (!empty($searchTerm)) {
+            $query->where('id', 'like', '%' . $searchTerm . '%');
+        }
+        return $query;
+    }
+
+    public function getPaginatedPayments($query, array $relations, int $perPage, int $page)
+    {
+        return $query->with($relations)->paginate($perPage, ['*'], 'page', $page);
     }
 }

@@ -45,9 +45,11 @@ Route::middleware('jwtAuth')->group(function () {
     // Rute untuk prefix title
     Route::prefix('titles')->group(function () {
 
-        Route::middleware('role:admin')->group(function () {
-            Route::get('/', [TitleController::class, 'getAll']);
-        });
+        Route::get('/', [TitleController::class, 'index']);
+
+        // Route::middleware('role:admin')->group(function () {
+        //     Route::get('/', [TitleController::class, 'getAll']);
+        // });
 
         Route::middleware('role:mahasiswa')->group(function () {
             Route::get('/student', [TitleController::class, 'getByStudent']);
@@ -71,7 +73,7 @@ Route::middleware('jwtAuth')->group(function () {
             Route::get('/{id}', [PaymentController::class, 'show']);
         });
 
-        Route::middleware('role:mahasiswa|staff')->group(function () {
+        Route::middleware('role:mahasiswa|staff|admin')->group(function () {
             Route::get('/', [PaymentController::class, 'index']);
         });
     });
@@ -79,12 +81,13 @@ Route::middleware('jwtAuth')->group(function () {
     // Rute untuk prefix guidances
     Route::prefix('guidances')->group(function () {
 
-        Route::middleware('role:admin')->group(function () {
-            // Route::get('/', [TitleController::class, 'getAll']);
+        Route::middleware('role:mahasiswa|dosen')->group(function () {
+            Route::get('/', [GuidanceController::class, 'index']);
         });
 
+
+
         Route::middleware('role:mahasiswa')->group(function () {
-            Route::get('/', [GuidanceController::class, 'index']);
             Route::get('/student/{id}', [GuidanceController::class, 'show']);
             Route::post('/store', [GuidanceController::class, 'store']);
             Route::patch('/update/{id}', [GuidanceController::class, 'update']);

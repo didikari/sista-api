@@ -6,6 +6,8 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\PaymentRequest;
 use App\Http\Requests\Payment\UpdatePaymentRequest;
+use App\Http\Resources\BaseCollection;
+use App\Http\Resources\Payment\PaymentResource;
 use App\Services\Payment\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,17 +21,18 @@ class PaymentController extends Controller
         $this->paymentService = $paymentService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         try {
             $user = Auth::user();
-            $roles = $user->getRoleNames()->first();
-            $payment = $this->paymentService->getPaymentRole($roles, $user);
-            if ($payment) {
-                $relations = $roles === 'mahasiswa' ? ['verifiedBy'] : ['student', 'verifiedBy'];
-                $payment->load($relations);
-            }
-            return ResponseHelper::success($payment, 'Get payment succesfully', 200);
+            $payments = $this->paymentService->getPayments($user, $request);
+            $payments->setCollection(collect(PaymentResource::collection($payments->items())->toArray($request)));
+
+            return ResponseHelper::success(
+                new BaseCollection($payments),
+                'Get data payments successfully',
+                200
+            );
         } catch (\Exception $e) {
             return ResponseHelper::exception($e);
         }
